@@ -1,25 +1,92 @@
-import logo from './logo.svg';
+// App.js
+import { useEffect, useState } from 'react';
+import Axios from 'axios';
+import Dropdown from 'react-dropdown';
+import { HiSwitchHorizontal } from 'react-icons/hi';
+import 'react-dropdown/style.css';
 import './App.css';
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+
+	 
+	const [info, setInfo] = useState([]);
+	const [input, setInput] = useState(0);
+	const [from, setFrom] = useState("eur");
+	const [to, setTo] = useState("usd");
+	const [options, setOptions] = useState([]);
+	const [output, setOutput] = useState(0);
+
+	// hakee valuuttakurssit
+	useEffect(() => {
+		Axios.get(
+`https://cdn.jsdelivr.net/gh/fawazahmed0/currency-api@1/latest/currencies/${from}.json`)
+			.then((res) => {
+				setInfo(res.data[from]);
+			})
+	}, [from]);
+
+	
+	useEffect(() => {
+		setOptions(Object.keys(info));
+		convert();
+	}, [info])
+
+	// valuutan arvo toisessa valuutassa
+	function convert() {
+		var rate = info[to];
+		setOutput(input * rate);
+	}
+
+	// Valuuttojen kääntöfunktio
+	function flip() {
+		var temp = from;
+		setFrom(to);
+		setTo(temp);
+	}
+
+	return (
+		<div className="App">
+			<div className="heading">
+				<h1>Valuuttalaskuri</h1>
+			</div>
+			<div className="container">
+				<div className="left">
+					<h3>Valuutan määrä</h3>
+					<input type="text"
+						placeholder="Kirjoita summa"
+						onChange={(e) => setInput(e.target.value)} />
+				</div>
+				<div className="middle">
+					<h3>Lähtövaluutta</h3>
+					<Dropdown options={options}
+						onChange={(e) => { setFrom(e.value) }}
+						value={from} placeholder="From" />
+				</div>
+				<div className="switch">
+					<HiSwitchHorizontal size="50px"
+						onClick={() => { flip() }} />
+				</div>
+				<div className="right">
+					<h3>Kohdevaluutta</h3>
+					<Dropdown options={options}
+						onChange={(e) => { setTo(e.value) }}
+						value={to} placeholder="To" />
+				</div>
+			</div>
+			<div className="result">
+				<button onClick={() => { convert() }}>Laske</button>
+				<h2>Loppusumma:</h2>
+				<p>{input + " " + from + " = " + output.toFixed(2) + " " + to}</p>
+
+			</div>
+		</div>
+	);
 }
 
 export default App;
+
+
+
+
+
+//Lähde:kurssimateriaali ja https://www.geeksforgeeks.org/how-to-create-a-currency-converter-app-in-reactjs/
